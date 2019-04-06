@@ -70,19 +70,18 @@ $(document).ready(function() {
             if(type == PutDataType.SIMPLE){
                 elementHtml += Results.getImgItem(pathToMainImage, '', '');
             } else {
-                elementHtml += Results.getTopHtmlCarousel(pathToMainImage, pathToRoot, type);
+                elementHtml += Results.getTopHtmlCarousel(pathToRoot, type);
             }
             $('#'+ tegId).html(elementHtml);
         },
 
-        getTopHtmlCarousel : function(pathToMainImage, pathToRoot, type){
+        getTopHtmlCarousel : function(pathToRoot, type){
             var array;
             if(type == PutDataType.KEYLABEL){
                 array = pathToRoot.kl;
             } else if (type == PutDataType.ROTATION){
                 array = pathToRoot.rot;
             }
-            array.unshift(pathToMainImage);
             return Results.getHtmlCarousel(array);
         },
 
@@ -98,9 +97,9 @@ $(document).ready(function() {
 
         getItemHtml : function (position, pathToImg) {
             if(position == 0){
-                return '<div class="outputImg carousel-item active">' + Results.getImgItem(pathToImg,["d-block", "mx-auto", "w-100"], '') + '</div>';
+                return '<div class="outputImg carousel-item active">' + Results.getImgItem(pathToImg,["d-block", "mx-auto", "w-25"], ["w-50"]) + '</div>';
             } else {
-                return '<div class="outputImg mini-img carousel-item">' + Results.getImgItem(pathToImg,["d-block", "mx-auto"], ["w-50"]) + '</div>';
+                return '<div class="outputImg mini-img carousel-item">' + Results.getImgItem(pathToImg,["d-block", "mx-auto", "w-25"], ["w-50"]) + '</div>';
             }
         },
 
