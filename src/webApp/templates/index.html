@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Augmented Face Recognition</title>
+    <link rel="stylesheet" type="text/css" href="./static/styles/main.css">
+    <link href="https://fonts.googleapis.com/css?family=Baloo+Chettan" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+<body>
+<div id="notifies"></div>
+<h1 id="h1-title">Hello! It's The Augmented Face Recognition WEB view</h1>
+<form id="form" method="POST" enctype="multipart/form-data" onsubmit="return false;">
+    <div id="formLoad">
+        <div  class="custom-file input-group mb-3">
+            <input id="file-picker" type="file" name="file" accept="image/jpeg,image/png" class="custom-file-input" aria-describedby="inputGroupFileAddon01">
+            <label id="file-picker-label" class="custom-file-label" for="file-picker">Choose image</label>
+        </div>
+    </div>
+</form>
+
+<div class="metrics-wrapper">
+    <div id="results-metrics" class="form-result conrainer p-3 mb-2 rounded"></div>
+</div>
+<div id="imgs-results" class="wrapper-results">
+    <div id="results-source" class="result outputImg container p-3 mb-2 rounded"></div>
+    <div id="results-bb" class="result outputImg container p-3 mb-2 rounded"></div>
+    <div id="results-kl" class="result outputImg container p-3 mb-2 rounded">
+        <div id="carousel-kl" class="carousel slide" data-ride="carousel" data-interval="false">
+            <div id="inner-result-kl"></div>
+            <a class="carousel-control-prev" href="#carousel-kl" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carousel-kl" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    </div>
+    <div id="results-rot" class="result outputImg container p-3 mb-2 rounded">
+        <div id="carousel-rot" class="carousel slide" data-ride="carousel" data-interval="false">
+            <div id="inner-result-rot"></div>
+            <a class="carousel-control-prev" href="#carousel-rot" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carousel-rot" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    </div>
+    <div id="results-mark" class="result outputImg container p-3 mb-2 rounded"></div>
+</div>
+
+<div id="mask"></div>
+<div id="loading">
+    <div class="lds-spinner"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+</div>
+
+<script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src={{ url_for('static', filename='js/main.js') }}></script>
+</body>
+</html>
