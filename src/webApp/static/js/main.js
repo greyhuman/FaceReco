@@ -18,11 +18,11 @@ $(document).ready(function() {
                     success: function(data) {
                         if(data.imgs.length > 0){
                             $('#imgs-results').show();
-                            Results.putInto("results-source", "The origin image:", 0, data.imgs[0], data, PutDataType.SIMPLE);
-                            Results.putInto("results-bb", 1, "The image with features and bounding boxes:", data.imgs[1], data, PutDataType.SIMPLE);
-                            Results.putInto("inner-result-kl", "The found faces:", 2, data.imgs[2], data, PutDataType.KEYLABEL);
-                            Results.putInto("inner-result-rot", "The aligned faces:", 3, data.imgs[3], data, PutDataType.ROTATION);
-                            Results.putInto("results-mark", 4, "The stub:", data.imgs[4], data, PutDataType.SIMPLE);
+                            Results.putInto("results-source", "The origin image:", data.imgs[0], data, PutDataType.SIMPLE);
+                            Results.putInto("results-bb", "The image with features and bounding boxes:", data.imgs[1], data, PutDataType.SIMPLE);
+                            Results.putInto("inner-result-kl", "The found faces:", data.imgs[2], data, PutDataType.KEYLABEL);
+                            Results.putInto("inner-result-rot", "The aligned faces:", data.imgs[3], data, PutDataType.ROTATION);
+                            Results.putInto("results-mark", "The stub:", data.imgs[4], data, PutDataType.SIMPLE);
 
                             var metricPerform = data.metrics.time;
                             metricPerform = Math.round(metricPerform * 10000) / 10000;
@@ -58,7 +58,7 @@ $(document).ready(function() {
     PutDataType = {SIMPLE: 1, KEYLABEL: 2, ROTATION: 3}
 
     Results = {
-        putInto  : function(tegId, title, stepNumber, pathToMainImage, pathToRoot, type){ // type = simple, keylabel, rotation
+        putInto  : function(tegId, title, pathToMainImage, pathToRoot, type){ // type = simple, keylabel, rotation
             var elementHtml = '';
             elementHtml += '<p class="lead">' + title + '</p>';
             if(type == PutDataType.SIMPLE){
