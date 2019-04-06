@@ -1,6 +1,7 @@
 import numpy as np
-#import tensorflow as tf
+# import tensorflow as tf
 
+import os
 import time
 import sys
 import cv2
@@ -8,13 +9,15 @@ import dlib
 import openface
 import face_recognition_models
 
+MAIN_PATH = os.path.dirname(os.path.realpath(__file__))
+
 
 class FaceDetector:
     """Detect human face from image"""
 
     def __init__(self,
-                 dnn_proto_text='models/deploy.prototxt',
-                 dnn_model='models/res10_300x300_ssd_iter_140000.caffemodel'):
+                 dnn_proto_text=MAIN_PATH + '/models/deploy.prototxt',
+                 dnn_model=MAIN_PATH + '/models/res10_300x300_ssd_iter_140000.caffemodel'):
         """Initialization"""
         self.face_net = cv2.dnn.readNetFromCaffe(dnn_proto_text, dnn_model)
         self.detection_result = None
@@ -43,14 +46,14 @@ class FaceDetector:
         diff = box_height - box_width
         delta = int(abs(diff) / 2)
 
-        if diff == 0:                   # Already a square.
+        if diff == 0:  # Already a square.
             return box
-        elif diff > 0:                  # Height > width, a slim box.
+        elif diff > 0:  # Height > width, a slim box.
             left_x -= delta
             right_x += delta
             if diff % 2 == 1:
                 right_x += 1
-        else:                           # Width > height, a short box.
+        else:  # Width > height, a short box.
             top_y -= delta
             bottom_y += delta
             if diff % 2 == 1:
@@ -67,7 +70,6 @@ class FaceDetector:
         rows = image.shape[0]
         cols = image.shape[1]
         return box[0] >= 0 and box[1] >= 0 and box[2] <= cols and box[3] <= rows
-
 
     def get_faceboxes(self, image, threshold=0.5):
         """
@@ -90,7 +92,7 @@ class FaceDetector:
                 x_right_top = int(result[5] * cols)
                 y_right_top = int(result[6] * rows)
                 confidences.append(confidence)
-                #dlib rectangle for alignment
+                # dlib rectangle for alignment
                 faceboxes.append(
                     [x_left_bottom, y_left_bottom, x_right_top, y_right_top])
 
@@ -134,11 +136,13 @@ class FaceDetector:
             cv2.circle(image, (int(mark.x), int(
                 mark.y)), 1, color, -1, cv2.LINE_AA)
 
+
 def compare_2_faces(known_face_encoding, face_encoding_to_check):
     return (np.linalg.norm(known_face_encoding - face_encoding_to_check))
 
+
 def compare_faces(known_faces, face_to_check):
-    tolerance=0.6
+    tolerance = 0.6
     ind, length = -1, sys.float_info.max
     for i in range(len(known_faces)):
         for face in known_faces[i]:
@@ -152,87 +156,87 @@ def compare_faces(known_faces, face_to_check):
         return -1
 
 
-def main(mode = 'test', img_path = 'def'):
-
+def main(mode='test', img_path='def'):
     t = time.clock()
     classes = ['MXG', 'Sanaken', 'Zofinka', 'Toalk', 'Zissxzirsziiss', 'kiasummer']
-    
+
     known_face_encodes = [
-	np.loadtxt('persons/MXG/fv.txt'), 
-	np.loadtxt('persons/Sanaken/fv.txt'), 
-	np.loadtxt('persons/Zofinka/fv.txt'),
-	np.loadtxt('persons/Toalk/fv.txt'),
-	np.loadtxt('persons/Zissxzirsziiss/fv.txt'),
-	np.loadtxt('persons/kiasummer/fv.txt')
+        np.loadtxt(MAIN_PATH + '/persons/MXG/fv.txt'),
+        np.loadtxt(MAIN_PATH + '/persons/Sanaken/fv.txt'),
+        np.loadtxt(MAIN_PATH + '/persons/Zofinka/fv.txt'),
+        np.loadtxt(MAIN_PATH + '/persons/Toalk/fv.txt'),
+        np.loadtxt(MAIN_PATH + '/persons/Zissxzirsziiss/fv.txt'),
+        np.loadtxt(MAIN_PATH + '/persons/kiasummer/fv.txt')
     ]
-    
+
     known_face_encodes = np.reshape(known_face_encodes, (6, 5, 128))
 
-    #get image
+    # get image
     if img_path == 'def':
         image = cv2.imread('team.jpg', 1)
     else:
         image = cv2.imread(img_path, 1)
 
-    #output
+    # output
     bbox_mark_image = image.copy()
     init_align_faces = []
     out_arr = []
 
-    #get bboxes
+    # get bboxes
     fd = FaceDetector()
     _, faceboxes = fd.get_faceboxes(image)
-    
-    #get alignment model
-    predictor_model = "models/shape_predictor_68_face_landmarks.dat"
+
+    # get alignment model
+    predictor_model = MAIN_PATH + "/models/shape_predictor_68_face_landmarks.dat"
     face_pose_predictor = dlib.shape_predictor(predictor_model)
     face_aligner = openface.AlignDlib(predictor_model)
-    
-    #init predection model
+
+    # init predection model
     predictor_5_point_model = face_recognition_models.pose_predictor_five_point_model_location()
     pose_predictor_5_point = dlib.shape_predictor(predictor_5_point_model)
     face_recognition_model = face_recognition_models.face_recognition_model_location()
     face_encoder = dlib.face_recognition_model_v1(face_recognition_model)
 
     for i in range(len(faceboxes)):
-        #get dlib rectangle from facebox
+        # get dlib rectangle from facebox
         face_rect = dlib.rectangle(faceboxes[i][0], faceboxes[i][1], faceboxes[i][2], faceboxes[i][3])
-        
+
         # Get the the face's pose
         pose_landmarks = face_pose_predictor(image, face_rect)
 
         # Use openface to calculate and perform the face alignment
         alignedFace = face_aligner.align(534, image, face_rect, landmarkIndices=openface.AlignDlib.OUTER_EYES_AND_NOSE)
-        alignedFace_out = cv2.resize(alignedFace, (faceboxes[i][2] - faceboxes[i][0], faceboxes[i][3] - faceboxes[i][1]))
+        alignedFace_out = cv2.resize(alignedFace,
+                                     (faceboxes[i][2] - faceboxes[i][0], faceboxes[i][3] - faceboxes[i][1]))
         initFace_out = image[faceboxes[i][1]:faceboxes[i][3], faceboxes[i][0]:faceboxes[i][2]]
         init_align_faces.append([initFace_out, alignedFace_out])
 
-
-        #draw marks
+        # draw marks
         parts = dlib.full_object_detection.parts(pose_landmarks)
         FaceDetector.draw_marks(bbox_mark_image, parts)
 
+        # get face landmarks for feature extraction
+        landmark_set = pose_predictor_5_point(alignedFace,
+                                              dlib.rectangle(0, 0, alignedFace.shape[0], alignedFace.shape[1]))
 
-        #get face landmarks for feature extraction
-        landmark_set = pose_predictor_5_point(alignedFace, dlib.rectangle(0, 0, alignedFace.shape[0], alignedFace.shape[1]))
-
-        #get feature vector
+        # get feature vector
         feature_vector = np.array(face_encoder.compute_face_descriptor(alignedFace, landmark_set, 1))
 
-        #known_face_encode = np.loadtxt('persons/MXG/fv.txt')
+        # known_face_encode = np.loadtxt('persons/MXG/fv.txt')
         ind = compare_faces(known_face_encodes, feature_vector)
         if (ind != -1):
             face_class = classes[ind]
             colour = (0, 255, 0)
         else:
             face_class = "Unknown"
-            colour =  (0, 0, 255)
-        cv2.putText(image, face_class, (faceboxes[i][0], faceboxes[i][1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colour, 1)
-        cv2.rectangle(bbox_mark_image, (faceboxes[i][0], faceboxes[i][1]), (faceboxes[i][2], faceboxes[i][3]), (0, 255, 0))
+            colour = (0, 0, 255)
+        cv2.putText(image, face_class, (faceboxes[i][0], faceboxes[i][1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colour,
+                    1)
+        cv2.rectangle(bbox_mark_image, (faceboxes[i][0], faceboxes[i][1]), (faceboxes[i][2], faceboxes[i][3]),
+                      (0, 255, 0))
         cv2.rectangle(image, (faceboxes[i][0], faceboxes[i][1]), (faceboxes[i][2], faceboxes[i][3]), (0, 255, 0))
-        out_arr.append({'x1': faceboxes[i][0], 'y1': faceboxes[i][1], 'x2': faceboxes[i][2], 'y2': faceboxes[i][3], 'class': face_class})
-    
-
+        out_arr.append({'x1': faceboxes[i][0], 'y1': faceboxes[i][1], 'x2': faceboxes[i][2], 'y2': faceboxes[i][3],
+                        'class': face_class})
 
     t = time.clock() - t
     out_imgs = [image, bbox_mark_image, init_align_faces, t]
@@ -244,6 +248,9 @@ def main(mode = 'test', img_path = 'def'):
         return out_arr
     if mode == 'process':
         return out_imgs
+    if mode == 'def':
+        return out_imgs
+
 
 if __name__ == '__main__':
     main()
