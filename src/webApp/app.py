@@ -36,7 +36,7 @@ def process(file_image):
         source_mini_imgs.append(source_img_name)
         rot_mini_imgs.append(rotation_img_name)
     timeMetric = results[3]
-    return {'imgs': [path_root_name + '-0.jpg', path_root_name + '-1.jpg', path_root_name + '-2.jpg',
+    return {'imgs': [path_root_name + '-0.jpg', path_root_name + '-2.jpg', path_root_name + '-2.jpg',
                      path_root_name + '-1.jpg',
                      path_root_name + '-1.jpg'],
             'kl': source_mini_imgs,
