@@ -99,6 +99,7 @@ class FaceDetector:
         self.detection_result = [faceboxes, confidences]
 
         fboxes = []
+        mboxes = []
         for box in faceboxes:
             # Move box down.
             diff_height_width = (box[3] - box[1]) - (box[2] - box[0])
@@ -110,8 +111,9 @@ class FaceDetector:
 
             if self.box_in_image(facebox, image):
                 fboxes.append(facebox)
+                mboxes.append(box)
 
-        return confidences, fboxes
+        return confidences, fboxes, mboxes
 
     def draw_all_result(self, image):
         """Draw the detection result on image"""
@@ -142,7 +144,7 @@ def compare_2_faces(known_face_encoding, face_encoding_to_check):
 
 
 def compare_faces(known_faces, face_to_check):
-    tolerance = 0.6
+    tolerance=0.52
     ind, length = -1, sys.float_info.max
     for i in range(len(known_faces)):
         for face in known_faces[i]:
@@ -184,11 +186,11 @@ def main(mode='test', img_path='def'):
 
     # get bboxes
     fd = FaceDetector()
+
     conf, faceboxes = fd.get_faceboxes(image)
 
     # get alignment model
     predictor_model = MAIN_PATH + "/models/shape_predictor_68_face_landmarks.dat"
-
     face_pose_predictor = dlib.shape_predictor(predictor_model)
     face_aligner = openface.AlignDlib(predictor_model)
 
@@ -236,6 +238,9 @@ def main(mode='test', img_path='def'):
         cv2.rectangle(bbox_mark_image, (faceboxes[i][0], faceboxes[i][1]), (faceboxes[i][2], faceboxes[i][3]),
                       (0, 255, 0))
         cv2.rectangle(image, (faceboxes[i][0], faceboxes[i][1]), (faceboxes[i][2], faceboxes[i][3]), (0, 255, 0))
+        #cv2.rectangle(image, (mboxes[i][0], mboxes[i][1]), (mboxes[i][2], mboxes[i][3]), (0, 255, 0))
+        #out_arr.append({'x1': faceboxes[i][0], 'y1': faceboxes[i][1], 'x2': faceboxes[i][2], 'y2': faceboxes[i][3], 'class': face_class, 'conf': conf[i]})
+        out_arr.append({'x1': mboxes[i][0], 'y1': mboxes[i][1], 'x2': mboxes[i][2], 'y2': mboxes[i][3], 'class': face_class, 'conf': conf[i]})
 
         out_arr.append({'x1': faceboxes[i][0], 'y1': faceboxes[i][1], 'x2': faceboxes[i][2], 'y2': faceboxes[i][3],
                         'class': face_class})
@@ -247,6 +252,9 @@ def main(mode='test', img_path='def'):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
     if mode == 'metr':
+        #cv2.imshow("Preview", image)
+        #cv2.waitKey(0)
+        #cv2.destroyAllWindows()
         return out_arr
     if mode == 'process':
         return out_imgs
