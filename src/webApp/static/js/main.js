@@ -22,7 +22,7 @@ $(document).ready(function() {
                             Results.putInto("results-bb", "The image with features and bounding boxes:", data.imgs[1], data, PutDataType.SIMPLE);
                             Results.putInto("inner-result-kl", "The found faces:", data.imgs[2], data, PutDataType.KEYLABEL);
                             Results.putInto("inner-result-rot", "The aligned faces:", data.imgs[3], data, PutDataType.ROTATION);
-                            Results.putInto("results-mark", "The stub:", data.imgs[4], data, PutDataType.SIMPLE);
+                            Results.putInto("results-mark", "The final image:", data.imgs[4], data, PutDataType.SIMPLE);
 
                             var metricPerform = data.metrics.time;
                             metricPerform = Math.round(metricPerform * 10000) / 10000;
