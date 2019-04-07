@@ -187,7 +187,7 @@ def main(mode='test', img_path='def'):
     # get bboxes
     fd = FaceDetector()
 
-    conf, faceboxes = fd.get_faceboxes(image)
+    conf, faceboxes, mboxes = fd.get_faceboxes(image)
 
     # get alignment model
     predictor_model = MAIN_PATH + "/models/shape_predictor_68_face_landmarks.dat"
@@ -241,9 +241,6 @@ def main(mode='test', img_path='def'):
         #cv2.rectangle(image, (mboxes[i][0], mboxes[i][1]), (mboxes[i][2], mboxes[i][3]), (0, 255, 0))
         #out_arr.append({'x1': faceboxes[i][0], 'y1': faceboxes[i][1], 'x2': faceboxes[i][2], 'y2': faceboxes[i][3], 'class': face_class, 'conf': conf[i]})
         out_arr.append({'x1': mboxes[i][0], 'y1': mboxes[i][1], 'x2': mboxes[i][2], 'y2': mboxes[i][3], 'class': face_class, 'conf': conf[i]})
-
-        out_arr.append({'x1': faceboxes[i][0], 'y1': faceboxes[i][1], 'x2': faceboxes[i][2], 'y2': faceboxes[i][3],
-                        'class': face_class})
 
     t = time.clock() - t
     out_imgs = [image, bbox_mark_image, init_align_faces, t]
