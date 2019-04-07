@@ -7,7 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import unicodedata
 
-
 def get_IOU(boxA, boxB):
     # determine the (x, y)-coordinates of the intersection rectangle
     xA = max(boxA[0], boxB[0])
@@ -31,35 +30,21 @@ def get_IOU(boxA, boxB):
     # return the intersection over union value
     return iou
 
-def get_mAP_and_top1(predicted, actual):
-    precision =[]
-    recall = []
-    top1 = []
-    count = 0
-    countT = 0
-    for pred in predicted:
-        count += 1
+def get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF):
+    countF += len(gt_bb)
+    for i in range(len(pred_bb)):
         maxIOU = 0
         c = False
-        for act in actual:
-            IOU = get_IOU(pred, act)
+        for j in range(len(gt_bb)):
+            IOU = get_IOU(pred_bb[i], gt_bb[j])
             if (IOU > maxIOU):
                 maxIOU = IOU
-                c = pred['class'] == act['class']
-        if maxIOU > 0.5:
-            top1.append(c)
+                c = pred_cl[i] == gt_cl[j]
+        if maxIOU >= 0.5 and c == True:
             countT += 1
-        else:
-            top1.append(False)
-        precision.append(countT/count)
-        recall.append(countT/len(predicted))
-    print (precision)
-    print (recall)
+    return countT, countF
 
 frames = []
-
-#with open("data_file.json", "r") as read_file:
-#    actual = json.load(read_file)
 
 imgs_path = "/home/maxgod/Downloads/photo/photo"
 json_file = "/home/maxgod/Downloads/photo/project1_new.json"
@@ -71,6 +56,9 @@ data = data['_via_img_metadata']
 count = 0
 
 classes = {'MXG': 0, 'Sanaken': 1, 'Zofinka': 2, 'Toalk': 3, 'Zissxzirsziiss': 4, 'kiasummer': 5, 'Unknown': 6}
+
+countT = 0
+countF = 0
 
 for key in data.keys():
     pred_bb = []
@@ -95,7 +83,7 @@ for key in data.keys():
     for pred in predicted:
         pred_bb.append([pred['x1'], pred['y1'], pred['x2'], pred['y2']])
         pred_cl.append(classes[pred['class']])
-        pred_conf.append(1)
+        pred_conf.append(	pred['conf'])
 
     pred_bb = np.array(pred_bb)
     pred_cl = np.array(pred_cl)
@@ -105,19 +93,22 @@ for key in data.keys():
     gt_cl = np.array(gt_cl)
 
     frames.append((pred_bb, pred_cl, pred_conf, gt_bb, gt_cl))
-    if count > 3:
-        break
+    countT, countF = get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF)
+    #if count > 3:
+    #    break
 
 
-
-#frames = [(pred_bb, pred_cl, pred_conf, gt_bb, gt_cl)]
 n_class = 7
 
 mAP = DetectionMAP(n_class)
 for i, frame in enumerate(frames):
     print("Evaluate frame {}".format(i))
-    show_frame(*frame)
+    #show_frame(*frame)
     mAP.evaluate(*frame)
 
+countT = countT + 0.0
+print (countT)
+print (countF)
+print ("top1 error = " + str(countT/countF))
 mAP.plot()
 plt.show()
