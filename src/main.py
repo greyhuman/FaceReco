@@ -184,10 +184,11 @@ def main(mode='test', img_path='def'):
 
     # get bboxes
     fd = FaceDetector()
-    _, faceboxes = fd.get_faceboxes(image)
+    conf, faceboxes = fd.get_faceboxes(image)
 
     # get alignment model
     predictor_model = MAIN_PATH + "/models/shape_predictor_68_face_landmarks.dat"
+
     face_pose_predictor = dlib.shape_predictor(predictor_model)
     face_aligner = openface.AlignDlib(predictor_model)
 
@@ -235,6 +236,7 @@ def main(mode='test', img_path='def'):
         cv2.rectangle(bbox_mark_image, (faceboxes[i][0], faceboxes[i][1]), (faceboxes[i][2], faceboxes[i][3]),
                       (0, 255, 0))
         cv2.rectangle(image, (faceboxes[i][0], faceboxes[i][1]), (faceboxes[i][2], faceboxes[i][3]), (0, 255, 0))
+
         out_arr.append({'x1': faceboxes[i][0], 'y1': faceboxes[i][1], 'x2': faceboxes[i][2], 'y2': faceboxes[i][3],
                         'class': face_class})
 
