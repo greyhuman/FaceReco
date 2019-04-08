@@ -192,7 +192,6 @@ def main(mode='test', img_path='def'):
         image = cv2.imread(img_path, 1)
 
     # output
-    bbox_mark_image = image.copy()
     init_align_faces = []
     out_arr = []
 
@@ -207,6 +206,7 @@ def main(mode='test', img_path='def'):
     top, bottom, left, right = [120]*4
 
     image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
+    bbox_mark_image = image.copy()
 
     # get alignment model
     predictor_model = MAIN_PATH + "/models/shape_predictor_68_face_landmarks.dat"
@@ -252,7 +252,11 @@ def main(mode='test', img_path='def'):
         else:
             face_class = "Unknown"
             colour = (0, 0, 255)
-        cv2.putText(image, face_class, (faceboxes[i][0], faceboxes[i][1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, colour,
+        sh = max(image.shape[0], image.shape[1])
+        mult = sh / 500
+        if mult < 1:
+            mult = 1
+        cv2.putText(image, face_class, (faceboxes[i][0], faceboxes[i][1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5 * mult, colour,
                     1)
         cv2.rectangle(bbox_mark_image, (faceboxes[i][0], faceboxes[i][1]), (faceboxes[i][2], faceboxes[i][3]),
                       (0, 255, 0))
