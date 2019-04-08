@@ -32,7 +32,7 @@ def get_IOU(boxA, boxB):
     return iou
 
 def get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF):
-    countF += len(gt_bb)
+    countF += len(pred_bb)
     for i in range(len(pred_bb)):
         maxIOU = 0
         c = False
@@ -65,10 +65,12 @@ countF = 0
 for key in data.keys():
     pred_bb = []
     pred_cl = []
+    pred_cl1 = []
     pred_conf = []
 
     gt_bb = []
     gt_cl = []
+    gt_cl1 = []
     count += 1
     img_file = data[key]['filename']
 
@@ -77,14 +79,15 @@ for key in data.keys():
         shape = region['shape_attributes']
         gt_bb.append([shape['x'], shape['y'], shape['x'] + shape['width'], shape['y'] + shape['height']])
         name = region['region_attributes']['class']
-        #name = unicodedata.normalize('NFKD', name).encode('ascii','ignore')
-        gt_cl.append(classes[name])
+        gt_cl1.append(classes[name])
+        gt_cl.append(0)
 
     predicted = main.main('metr', imgs_path + "/" + img_file)
 
     for pred in predicted:
         pred_bb.append([pred['x1'], pred['y1'], pred['x2'], pred['y2']])
-        pred_cl.append(classes[pred['class']])
+        pred_cl1.append(classes[pred['class']])
+        pred_cl.append(0)
         pred_conf.append(pred['conf'])
 
     pred_bb = np.array(pred_bb)
@@ -95,11 +98,9 @@ for key in data.keys():
     gt_cl = np.array(gt_cl)
 
     frames.append((pred_bb, pred_cl, pred_conf, gt_bb, gt_cl))
-    countT, countF = get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF)
-    #if count > 3:
-    #    break
+    countT, countF = get_top1(pred_bb, pred_cl1, gt_bb, gt_cl1, countT, countF)
 
-n_class = 7
+n_class = 1
 
 mAP = DetectionMAP(n_class)
 for i, frame in enumerate(frames):
@@ -108,8 +109,8 @@ for i, frame in enumerate(frames):
     mAP.evaluate(*frame)
 
 countT = countT + 0.0
-print (countT)
-print (countF)
+#print (countT)
+#print (countF)
 print ("top1 error = " + str(countT/countF))
 
 mAP.plot()
