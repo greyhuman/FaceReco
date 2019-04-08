@@ -84,6 +84,13 @@ class FaceDetector:
             image, 1.0, (300, 300), (104.0, 177.0, 123.0), False, False))
         detections = self.face_net.forward()
 
+        color = [255, 255, 255]
+
+        # border widths; I set them all to 150
+        top, bottom, left, right = [120]*4
+
+        image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
+
         for result in detections[0, 0, :, :]:
             confidence = result[2]
             if confidence > threshold:
@@ -105,6 +112,11 @@ class FaceDetector:
             diff_height_width = (box[3] - box[1]) - (box[2] - box[0])
             offset_y = int(abs(diff_height_width / 2))
             box_moved = self.move_box(box, [0, offset_y])
+
+            box_moved[0] += left
+            box_moved[1] += top
+            box_moved[2] += left
+            box_moved[3] += top
 
             # Make box square.
             facebox = self.get_square_box(box_moved)
@@ -188,6 +200,13 @@ def main(mode='test', img_path='def'):
     fd = FaceDetector()
 
     conf, faceboxes, mboxes = fd.get_faceboxes(image)
+ 
+    color = [255, 255, 255]
+
+    # border widths; I set them all to 150
+    top, bottom, left, right = [120]*4
+
+    image = cv2.copyMakeBorder(image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
 
     # get alignment model
     predictor_model = MAIN_PATH + "/models/shape_predictor_68_face_landmarks.dat"
