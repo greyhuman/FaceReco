@@ -198,8 +198,11 @@ def main(mode='test', img_path='def'):
     # get bboxes
     fd = FaceDetector()
 
-    conf, faceboxes, mboxes = fd.get_faceboxes(image)
- 
+    if mode == 'metr':
+        conf, faceboxes, mboxes = fd.get_faceboxes(image, 0.001)
+    else:
+        conf, faceboxes, mboxes = fd.get_faceboxes(image)
+
     color = [255, 255, 255]
 
     # border widths; I set them all to 150
