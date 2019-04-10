@@ -32,17 +32,19 @@ def get_IOU(boxA, boxB):
     return iou
 
 def get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF):
-    countF += len(pred_bb)
-    for i in range(len(pred_bb)):
+    countF += len(gt_cl)
+    for i in range(len(gt_bb)):
         maxIOU = 0
         c = False
-        for j in range(len(gt_bb)):
-            IOU = get_IOU(pred_bb[i], gt_bb[j])
+        for j in range(len(pred_bb)):
+            IOU = get_IOU(pred_bb[j], gt_bb[i])
             if (IOU > maxIOU):
                 maxIOU = IOU
-                c = pred_cl[i] == gt_cl[j]
+                c = pred_cl[j] == gt_cl[i]
         if maxIOU >= 0.5 and c == True:
             countT += 1
+        if maxIOU < 0.5:
+            countF -= 1
     return countT, countF
 
 frames = []
