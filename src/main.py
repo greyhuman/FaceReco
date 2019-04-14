@@ -256,7 +256,7 @@ def main(mode='test', img_path='def'):
             face_class = "Unknown"
             colour = (0, 0, 255)
         sh = max(image.shape[0], image.shape[1])
-        mult = sh / 500
+        mult = sh / 750
         if mult < 1:
             mult = 1
         cv2.putText(image, face_class, (faceboxes[i][0], faceboxes[i][1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5 * mult, colour,
