@@ -187,13 +187,14 @@ def main(mode='test', img_path='def'):
 
     # get image
     if img_path == 'def':
-        image = cv2.imread('team.jpg', 1)
+        image = cv2.imread('train_zofinka_6.jpg')#team.jpg', 1)
     else:
         image = cv2.imread(img_path, 1)
 
     # output
     init_align_faces = []
     out_arr = []
+    out_vec = []
 
     # get bboxes
     fd = FaceDetector()
@@ -246,6 +247,7 @@ def main(mode='test', img_path='def'):
 
         # get feature vector
         feature_vector = np.array(face_encoder.compute_face_descriptor(alignedFace, landmark_set, 1))
+        #print(feature_vector)
 
         # known_face_encode = np.loadtxt('persons/MXG/fv.txt')
         ind = compare_faces(known_face_encodes, feature_vector)
@@ -266,6 +268,7 @@ def main(mode='test', img_path='def'):
         cv2.rectangle(image, (faceboxes[i][0], faceboxes[i][1]), (faceboxes[i][2], faceboxes[i][3]), (0, 255, 0))
         #cv2.rectangle(image, (mboxes[i][0], mboxes[i][1]), (mboxes[i][2], mboxes[i][3]), (0, 255, 0))
         #out_arr.append({'x1': faceboxes[i][0], 'y1': faceboxes[i][1], 'x2': faceboxes[i][2], 'y2': faceboxes[i][3], 'class': face_class, 'conf': conf[i]})
+        out_vec.append({'vec': str(feature_vector), 'class': face_class})
         out_arr.append({'x1': mboxes[i][0], 'y1': mboxes[i][1], 'x2': mboxes[i][2], 'y2': mboxes[i][3], 'class': face_class, 'conf': conf[i]})
 
     t = time.clock() - t
@@ -283,6 +286,8 @@ def main(mode='test', img_path='def'):
         return out_imgs
     if mode == 'def':
         return out_imgs
+    if mode == 'vec':
+        return out_vec, out_imgs, out_arr
 
 
 if __name__ == '__main__':
