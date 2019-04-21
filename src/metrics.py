@@ -1,5 +1,6 @@
 import main
 
+import sys
 import subprocess
 import os
 import json
@@ -50,74 +51,77 @@ def get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF):
 persons = ["Sanaken", "kiasummer", "MXG", "toalk", "zofinka", "zissxzirsziiss"]#, "others"]
 mode = "train"
 
-out_path = "/home/maxgod/git/mAP/input"
+out_path = "mAP/input"
+
+print("Recount vects?[yes/no]")
+ans = sys.stdin.readline()
+
+if ans == "yes":
+    for the_file in os.listdir(out_path + "/ground-truth/"):
+        file_path = os.path.join(out_path + "/ground-truth/", the_file)
+        if os.path.isfile(file_path):
+            os.unlink(file_path)
+
+    for the_file in os.listdir(out_path + "/detection-results/"):
+        file_path = os.path.join(out_path + "/detection-results/", the_file)
+        if os.path.isfile(file_path):
+            os.unlink(file_path)
 
 
-for the_file in os.listdir(out_path + "/ground-truth/"):
-    file_path = os.path.join(out_path + "/ground-truth/", the_file)
-    if os.path.isfile(file_path):
-        os.unlink(file_path)
+    countT = 0
+    countF = 0
 
-for the_file in os.listdir(out_path + "/detection-results/"):
-    file_path = os.path.join(out_path + "/detection-results/", the_file)
-    if os.path.isfile(file_path):
-        os.unlink(file_path)
+    for person in persons:
+        imgs_path = "/home/maxgod/Downloads/datatset/" + person
 
-
-countT = 0
-countF = 0
-
-for person in persons:
-    imgs_path = "/home/maxgod/Downloads/datatset/" + person
-
-    with open(imgs_path + "/" + person + "_" + mode + "_via_region_data.json", "r") as read_file:
-        data = json.load(read_file)
+        with open(imgs_path + "/" + person + "_" + mode + "_via_region_data.json", "r") as read_file:
+            data = json.load(read_file)
 
 
-    count = 0
+        count = 0
 
 
 
-    for key in data.keys():
-        pred_bb = []
-        pred_cl = []
+        for key in data.keys():
+            pred_bb = []
+            pred_cl = []
 
-        gt_bb = []
-        gt_cl = []
-        count += 1
-        img_file = data[key]['filename']
+            gt_bb = []
+            gt_cl = []
+            count += 1
+            img_file = data[key]['filename']
 
-        regions = data[key]['regions']
-        for region in regions:
-            shape = region['shape_attributes']
-            gt_bb.append([shape['x'], shape['y'], shape['x'] + shape['width'], shape['y'] + shape['height']])
-            name = region['region_attributes']['class']
-            gt_cl.append(name)
-            with open(out_path + "/ground-truth/" + img_file.split(".")[0] + ".txt", "a") as w_file:
-                w_file.write("face " + str(shape['x']) + " " + str(shape['y']) + " " + str(
-                    shape['x'] + shape['width']) + " " + str(shape['y'] + shape['height']) + "\n")
+            regions = data[key]['regions']
+            for region in regions:
+                shape = region['shape_attributes']
+                gt_bb.append([shape['x'], shape['y'], shape['x'] + shape['width'], shape['y'] + shape['height']])
+                name = region['region_attributes']['class']
+                gt_cl.append(name)
+                with open(out_path + "/ground-truth/" + img_file.split(".")[0] + ".txt", "a") as w_file:
+                    w_file.write("face " + str(shape['x']) + " " + str(shape['y']) + " " + str(
+                        shape['x'] + shape['width']) + " " + str(shape['y'] + shape['height']) + "\n")
 
-        predicted = main.main('metr', imgs_path + "/" + mode + "/" + img_file)
+            predicted = main.main('metr', imgs_path + "/" + mode + "/" + img_file)
 
-        for pred in predicted:
-            with open(out_path + "/detection-results/" + img_file.split(".")[0] + ".txt", "a") as w_file:
-                w_file.write("face " + str(pred['conf']) + " " + str(pred['x1']) + " " + str(pred['y1']) + " " + str(
-                    pred['x2']) + " " + str(pred['y2']) + "\n")
-            pred_bb.append([pred['x1'], pred['y1'], pred['x2'], pred['y2']])
-            pred_cl.append(pred['class'])
+            for pred in predicted:
+                with open(out_path + "/detection-results/" + img_file.split(".")[0] + ".txt", "a") as w_file:
+                    w_file.write("face " + str(pred['conf']) + " " + str(pred['x1']) + " " + str(pred['y1']) + " " + str(
+                        pred['x2']) + " " + str(pred['y2']) + "\n")
+                pred_bb.append([pred['x1'], pred['y1'], pred['x2'], pred['y2']])
+                pred_cl.append(pred['class'])
 
-        pred_bb = np.array(pred_bb)
-        pred_cl = np.array(pred_cl)
+            pred_bb = np.array(pred_bb)
+            pred_cl = np.array(pred_cl)
 
-        gt_bb = np.array(gt_bb)
-        gt_cl = np.array(gt_cl)
+            gt_bb = np.array(gt_bb)
+            gt_cl = np.array(gt_cl)
 
-        countT, countF = get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF)
+            countT, countF = get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF)
 
 
-countT = countT + 0.0
-print(countT)
-print(countF)
-print("top1 error = " + str(countT/countF))
+    countT = countT + 0.0
+    print(countT)
+    print(countF)
+    print("top1 error = " + str(countT/countF))
 
 subprocess.call("python " + out_path + "/../main.py --no-animation", shell=True)
