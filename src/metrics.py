@@ -1,11 +1,9 @@
 import main
-import json
 
-from mean_average_precision.detection_map import DetectionMAP
-from mean_average_precision.utils.show_frame import show_frame
+import subprocess
+import os
+import json
 import numpy as np
-import matplotlib.pyplot as plt
-import unicodedata
 
 
 def get_IOU(boxA, boxB):
@@ -41,79 +39,85 @@ def get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF):
             if (IOU > maxIOU):
                 maxIOU = IOU
                 c = pred_cl[j] == gt_cl[i]
+                if c == False:
+                    print("pred = " + str(pred_cl[j]) + " gt = " + str(gt_cl[i]))
         if maxIOU >= 0.5 and c == True:
             countT += 1
         if maxIOU < 0.5:
             countF -= 1
     return countT, countF
 
-frames = []
+persons = ["Sanaken", "kiasummer", "MXG", "toalk", "zofinka", "zissxzirsziiss"]#, "others"]
+mode = "train"
 
-imgs_path = "/home/maxgod/Downloads/photo/photo"
-json_file = "/home/maxgod/Downloads/photo/project1_new.json"
+out_path = "/home/maxgod/git/mAP/input"
 
-with open(json_file, "r") as read_file:
-    data = json.load(read_file)
 
-data = data['_via_img_metadata']
-count = 0
+for the_file in os.listdir(out_path + "/ground-truth/"):
+    file_path = os.path.join(out_path + "/ground-truth/", the_file)
+    if os.path.isfile(file_path):
+        os.unlink(file_path)
 
-classes = {'MXG': 0, 'Sanaken': 1, 'Zofinka': 2, 'Toalk': 3, 'Zissxzirsziiss': 4, 'kiasummer': 5, 'Unknown': 6}
+for the_file in os.listdir(out_path + "/detection-results/"):
+    file_path = os.path.join(out_path + "/detection-results/", the_file)
+    if os.path.isfile(file_path):
+        os.unlink(file_path)
 
 
 countT = 0
 countF = 0
 
-for key in data.keys():
-    pred_bb = []
-    pred_cl = []
-    pred_cl1 = []
-    pred_conf = []
+for person in persons:
+    imgs_path = "/home/maxgod/Downloads/datatset/" + person
 
-    gt_bb = []
-    gt_cl = []
-    gt_cl1 = []
-    count += 1
-    img_file = data[key]['filename']
+    with open(imgs_path + "/" + person + "_" + mode + "_via_region_data.json", "r") as read_file:
+        data = json.load(read_file)
 
-    regions = data[key]['regions']
-    for region in regions:
-        shape = region['shape_attributes']
-        gt_bb.append([shape['x'], shape['y'], shape['x'] + shape['width'], shape['y'] + shape['height']])
-        name = region['region_attributes']['class']
-        gt_cl1.append(classes[name])
-        gt_cl.append(0)
 
-    predicted = main.main('metr', imgs_path + "/" + img_file)
+    count = 0
 
-    for pred in predicted:
-        pred_bb.append([pred['x1'], pred['y1'], pred['x2'], pred['y2']])
-        pred_cl1.append(classes[pred['class']])
-        pred_cl.append(0)
-        pred_conf.append(pred['conf'])
 
-    pred_bb = np.array(pred_bb)
-    pred_cl = np.array(pred_cl)
-    pred_conf = np.array(pred_conf)
 
-    gt_bb = np.array(gt_bb)
-    gt_cl = np.array(gt_cl)
+    for key in data.keys():
+        pred_bb = []
+        pred_cl = []
 
-    frames.append((pred_bb, pred_cl, pred_conf, gt_bb, gt_cl))
-    countT, countF = get_top1(pred_bb, pred_cl1, gt_bb, gt_cl1, countT, countF)
+        gt_bb = []
+        gt_cl = []
+        count += 1
+        img_file = data[key]['filename']
 
-n_class = 1
+        regions = data[key]['regions']
+        for region in regions:
+            shape = region['shape_attributes']
+            gt_bb.append([shape['x'], shape['y'], shape['x'] + shape['width'], shape['y'] + shape['height']])
+            name = region['region_attributes']['class']
+            gt_cl.append(name)
+            with open(out_path + "/ground-truth/" + img_file.split(".")[0] + ".txt", "a") as w_file:
+                w_file.write("face " + str(shape['x']) + " " + str(shape['y']) + " " + str(
+                    shape['x'] + shape['width']) + " " + str(shape['y'] + shape['height']) + "\n")
 
-mAP = DetectionMAP(n_class)
-for i, frame in enumerate(frames):
-    print("Evaluate frame {}".format(i))
-    #show_frame(*frame)
-    mAP.evaluate(*frame)
+        predicted = main.main('metr', imgs_path + "/" + mode + "/" + img_file)
+
+        for pred in predicted:
+            with open(out_path + "/detection-results/" + img_file.split(".")[0] + ".txt", "a") as w_file:
+                w_file.write("face " + str(pred['conf']) + " " + str(pred['x1']) + " " + str(pred['y1']) + " " + str(
+                    pred['x2']) + " " + str(pred['y2']) + "\n")
+            pred_bb.append([pred['x1'], pred['y1'], pred['x2'], pred['y2']])
+            pred_cl.append(pred['class'])
+
+        pred_bb = np.array(pred_bb)
+        pred_cl = np.array(pred_cl)
+
+        gt_bb = np.array(gt_bb)
+        gt_cl = np.array(gt_cl)
+
+        countT, countF = get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF)
+
 
 countT = countT + 0.0
-#print (countT)
-#print (countF)
-print ("top1 error = " + str(countT/countF))
+print(countT)
+print(countF)
+print("top1 error = " + str(countT/countF))
 
-mAP.plot()
-plt.show()
+subprocess.call("python " + out_path + "/../main.py --no-animation", shell=True)
