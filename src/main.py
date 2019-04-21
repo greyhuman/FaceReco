@@ -172,7 +172,7 @@ def compare_faces(known_faces, face_to_check):
 
 def main(mode='test', img_path='def'):
     t = time.clock()
-    classes = ['MXG', 'Sanaken', 'Zofinka', 'Toalk', 'Zissxzirsziiss', 'kiasummer']
+    classes = ['MXG', 'Sanaken', 'zofinka', 'toalk', 'zissxzirsziiss', 'kiasummer']
 
     known_face_encodes = [
         np.loadtxt(MAIN_PATH + '/persons/MXG/fv.txt'),
