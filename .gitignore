@@ -4,4 +4,4 @@
 *.png
 *.JPG
 *.jpeg
-src/mAP/results/*/*.txt
+*.txt
