@@ -23,7 +23,7 @@ def process(file_image):
     root_name = hashlib.md5(image_path).hexdigest() + str(random.randint(0, 10000))
     path_root_name = IMAGE_FOLDER + root_name
     process_origin_image(file_image, root_name + '-0.jpg')
-    results = main('process', path_root_name + '-0.jpg')
+    results = main('process', path_root_name + '-0.jpg', 'rec')
     cv2.imwrite(path_root_name + '-1.jpg', results[0])
     cv2.imwrite(path_root_name + '-2.jpg', results[1])
     source_mini_imgs = []
