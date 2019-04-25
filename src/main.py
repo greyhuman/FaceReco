@@ -1,6 +1,8 @@
 import numpy as np
 # import tensorflow as tf
 
+import json
+import keras
 import os
 import time
 import sys
@@ -170,24 +172,24 @@ def compare_faces(known_faces, face_to_check):
         return -1
 
 
-def main(mode='test', img_path='def'):
+def main(mode='test', img_path='def', rec='gal'):
     t = time.clock()
-    classes = ['MXG', 'Sanaken', 'zofinka', 'toalk', 'zissxzirsziiss', 'kiasummer']
+    classes = ['MXG', 'zofinka', 'kiasummer', 'Sanaken', 'toalk', 'zissxzirsziiss']
 
     known_face_encodes = [
         np.loadtxt(MAIN_PATH + '/persons/MXG/fv.txt'),
-        np.loadtxt(MAIN_PATH + '/persons/Sanaken/fv.txt'),
         np.loadtxt(MAIN_PATH + '/persons/Zofinka/fv.txt'),
+        np.loadtxt(MAIN_PATH + '/persons/kiasummer/fv.txt'),
+        np.loadtxt(MAIN_PATH + '/persons/Sanaken/fv.txt'),
         np.loadtxt(MAIN_PATH + '/persons/Toalk/fv.txt'),
-        np.loadtxt(MAIN_PATH + '/persons/Zissxzirsziiss/fv.txt'),
-        np.loadtxt(MAIN_PATH + '/persons/kiasummer/fv.txt')
+        np.loadtxt(MAIN_PATH + '/persons/Zissxzirsziiss/fv.txt')
     ]
 
     known_face_encodes = np.reshape(known_face_encodes, (6, 5, 128))
 
     # get image
     if img_path == 'def':
-        image = cv2.imread('train_zofinka_6.jpg')#team.jpg', 1)
+        image = cv2.imread('team.jpg', 1)
     else:
         image = cv2.imread(img_path, 1)
 
@@ -223,6 +225,16 @@ def main(mode='test', img_path='def'):
     face_recognition_model = face_recognition_models.face_recognition_model_location()
     face_encoder = dlib.face_recognition_model_v1(face_recognition_model)
 
+    if rec != 'gal':
+        json_file = open('models/rec_model.json', 'r')
+
+        loaded_model_json = json_file.read()
+        json_file.close()
+        model = keras.models.model_from_json(loaded_model_json)
+        model.load_weights('models/rec_weights.h5')
+
+
+
     for i in range(len(faceboxes)):
         # get dlib rectangle from facebox
         face_rect = dlib.rectangle(faceboxes[i][0], faceboxes[i][1], faceboxes[i][2], faceboxes[i][3])
@@ -250,12 +262,17 @@ def main(mode='test', img_path='def'):
         #print(feature_vector)
 
         # known_face_encode = np.loadtxt('persons/MXG/fv.txt')
-        ind = compare_faces(known_face_encodes, feature_vector)
+        if rec == 'gal':
+            ind = compare_faces(known_face_encodes, feature_vector)
+        else:
+            feature_vector = np.reshape(feature_vector, (1,128))
+            inds = model.predict(feature_vector)
+            ind = inds.argmax() - 1
         if (ind != -1):
             face_class = classes[ind]
             colour = (0, 255, 0)
         else:
-            face_class = "Unknown"
+            face_class = "unknown"
             colour = (0, 0, 255)
         sh = max(image.shape[0], image.shape[1])
         mult = sh / 750
