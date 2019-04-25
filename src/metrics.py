@@ -49,14 +49,15 @@ def get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF):
     return countT, countF
 
 persons = ["Sanaken", "kiasummer", "MXG", "toalk", "zofinka", "zissxzirsziiss"]#, "others"]
-mode = "train"
+mode = "test"
 
 out_path = "mAP/input"
 
 print("Recount vects?[yes/no]")
 ans = sys.stdin.readline()
 
-if ans == "yes":
+
+if ans == "yes\n":
     for the_file in os.listdir(out_path + "/ground-truth/"):
         file_path = os.path.join(out_path + "/ground-truth/", the_file)
         if os.path.isfile(file_path):
@@ -80,7 +81,8 @@ if ans == "yes":
 
         count = 0
 
-
+        if person == "Sanaken":
+            data = data['_via_img_metadata']
 
         for key in data.keys():
             pred_bb = []
@@ -101,7 +103,7 @@ if ans == "yes":
                     w_file.write("face " + str(shape['x']) + " " + str(shape['y']) + " " + str(
                         shape['x'] + shape['width']) + " " + str(shape['y'] + shape['height']) + "\n")
 
-            predicted = main.main('metr', imgs_path + "/" + mode + "/" + img_file)
+            predicted = main.main('metr', imgs_path + "/" + mode + "/" + img_file, 'rec')
 
             for pred in predicted:
                 with open(out_path + "/detection-results/" + img_file.split(".")[0] + ".txt", "a") as w_file:
