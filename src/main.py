@@ -226,12 +226,12 @@ def main(mode='test', img_path='def', rec='gal'):
     face_encoder = dlib.face_recognition_model_v1(face_recognition_model)
 
     if rec != 'gal':
-        json_file = open('models/rec_model.json', 'r')
+        json_file = open(MAIN_PATH + '/models/rec_model.json', 'r')
 
         loaded_model_json = json_file.read()
         json_file.close()
         model = keras.models.model_from_json(loaded_model_json)
-        model.load_weights('models/rec_weights.h5')
+        model.load_weights(MAIN_PATH + '/models/rec_weights.h5')
 
 
 
