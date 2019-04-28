@@ -5,6 +5,8 @@ $(document).ready(function() {
         var existImg = files.length;
         if(existImg == 0) return;
         var form_data = new FormData($('#form')[0]);
+        var caseFlag = $('#form')[0][1].checked;
+        form_data.append('galMode', caseFlag);
         $('#file-picker-label').text(files[0].name);
         $('#loading').show();
         $('#mask').show();

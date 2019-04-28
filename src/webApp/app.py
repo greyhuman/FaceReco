@@ -17,13 +17,20 @@ def process_origin_image(img, filename_n):
     destination = "/".join([target, filename_n])
     img.save(destination)
 
+def perform_face_recognition_module(path_root_name, request):
+    galMode = request.form['galMode']
+    if(galMode.lower() == 'true'):
+        return main('process', path_root_name + '-0.jpg', 'gal')
+    else:
+        return main('process', path_root_name + '-0.jpg', 'rec')
 
-def process(file_image):
+
+def process(file_image, request):
     image_path = IMAGE_FOLDER + file_image.filename
     root_name = hashlib.md5(image_path).hexdigest() + str(random.randint(0, 10000))
     path_root_name = IMAGE_FOLDER + root_name
     process_origin_image(file_image, root_name + '-0.jpg')
-    results = main('process', path_root_name + '-0.jpg', 'rec')
+    results = perform_face_recognition_module(path_root_name, request)
     cv2.imwrite(path_root_name + '-1.jpg', results[0])
     cv2.imwrite(path_root_name + '-2.jpg', results[1])
     source_mini_imgs = []
@@ -50,7 +57,7 @@ def index():
         if len(request.files.getlist(INPUT_NAME)) != 1:
             return []
         file = request.files[INPUT_NAME]
-        result = process(file)
+        result = process(file, request)
         return jsonify(result)
     return render_template("index.html")
 
