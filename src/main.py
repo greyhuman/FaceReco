@@ -231,7 +231,7 @@ def main(mode='test', img_path='def', rec='gal'):
         loaded_model_json = json_file.read()
         json_file.close()
         model = keras.models.model_from_json(loaded_model_json)
-        model.load_weights(MAIN_PATH + '/models/rec_weights.h5')
+        model.load_weights(MAIN_PATH + '/models/rec_weights.hdf5')
 
 
 
