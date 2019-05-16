@@ -30,7 +30,8 @@ def get_IOU(boxA, boxB):
     # return the intersection over union value
     return iou
 
-def get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF):
+def get_top1(pred_bb, pred_cl, pred_conf, gt_bb, gt_cl, countT, countF, countFaces, countFounded):
+    countFaces += len(gt_cl)
     countF += len(gt_cl)
     for i in range(len(gt_bb)):
         maxIOU = 0
@@ -40,15 +41,18 @@ def get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF):
             if (IOU > maxIOU):
                 maxIOU = IOU
                 c = pred_cl[j] == gt_cl[i]
+                conf = pred_conf[j]
                 if c == False:
                     print("pred = " + str(pred_cl[j]) + " gt = " + str(gt_cl[i]))
-        if maxIOU >= 0.5 and c == True:
+        if maxIOU > 0 and c == True:
             countT += 1
+        if conf >= 0.5 and maxIOU > 0:
+            countFounded += 1
         if maxIOU < 0.5:
             countF -= 1
-    return countT, countF
+    return countT, countF, countFaces, countFounded
 
-persons = ["Sanaken", "kiasummer", "MXG", "toalk", "zofinka", "zissxzirsziiss"]#, "others"]
+persons = ["otherPeople", "Sanaken", "kiasummer", "MXG", "toalk", "zofinka", "zissxzirsziiss"]
 mode = "test"
 
 out_path = "mAP/input"
@@ -71,9 +75,12 @@ if ans == "yes\n":
 
     countT = 0
     countF = 0
+    countFaces = 0
+    countFounded = 0
+    numImgs = 0
 
     for person in persons:
-        imgs_path = "/home/maxgod/Downloads/datatset/" + person
+        imgs_path = "/home/afr/Downloads/datatset/" + person
 
         with open(imgs_path + "/" + person + "_" + mode + "_via_region_data.json", "r") as read_file:
             data = json.load(read_file)
@@ -81,12 +88,14 @@ if ans == "yes\n":
 
         count = 0
 
-        if person == "Sanaken":
+        if person == "Sanaken" or person == "otherPeople":
             data = data['_via_img_metadata']
 
         for key in data.keys():
+            numImgs += 1
             pred_bb = []
             pred_cl = []
+            pred_conf = []
 
             gt_bb = []
             gt_cl = []
@@ -111,6 +120,7 @@ if ans == "yes\n":
                         pred['x2']) + " " + str(pred['y2']) + "\n")
                 pred_bb.append([pred['x1'], pred['y1'], pred['x2'], pred['y2']])
                 pred_cl.append(pred['class'])
+                pred_conf.append(pred['conf'])
 
             pred_bb = np.array(pred_bb)
             pred_cl = np.array(pred_cl)
@@ -118,12 +128,16 @@ if ans == "yes\n":
             gt_bb = np.array(gt_bb)
             gt_cl = np.array(gt_cl)
 
-            countT, countF = get_top1(pred_bb, pred_cl, gt_bb, gt_cl, countT, countF)
+            countT, countF, countFaces, countFounded = get_top1(pred_bb, pred_cl, pred_conf, gt_bb, gt_cl, countT, countF, countFaces, countFounded)
 
 
     countT = countT + 0.0
-    print(countT)
-    print(countF)
+    #print(countT)
+    #print(countF)
     print("top1 error = " + str(countT/countF))
+
+    #print(str(countFaces) + " " + str(countFounded))
+    print("detected faces = ", + str(countFounded/countFaces))
+
 
 subprocess.call("python " + out_path + "/../main.py --no-animation", shell=True)
