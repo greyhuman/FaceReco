@@ -30,9 +30,10 @@ def get_IOU(boxA, boxB):
     # return the intersection over union value
     return iou
 
-def get_top1(pred_bb, pred_cl, pred_conf, gt_bb, gt_cl, countT, countF, countFaces, countFounded):
+def get_top1(pred_bb, pred_cl, pred_conf, gt_bb, gt_cl, countT, countF, countFaces, countFounded, errors):
     countFaces += len(gt_cl)
     countF += len(gt_cl)
+    matched = []
     for i in range(len(gt_bb)):
         maxIOU = 0
         c = False
@@ -42,17 +43,27 @@ def get_top1(pred_bb, pred_cl, pred_conf, gt_bb, gt_cl, countT, countF, countFac
                 maxIOU = IOU
                 c = pred_cl[j] == gt_cl[i]
                 conf = pred_conf[j]
-                if c == False:
-                    print("pred = " + str(pred_cl[j]) + " gt = " + str(gt_cl[i]))
+                predMatched = j
+        matched.append(predMatched)
+        if c == False:
+            print("pred = " + str(pred_cl[j]) + " gt = " + str(gt_cl[i]))
         if maxIOU > 0 and c == True:
             countT += 1
         if conf >= 0.5 and maxIOU > 0:
             countFounded += 1
         if maxIOU < 0.5:
             countF -= 1
-    return countT, countF, countFaces, countFounded
+    for i in range(len(pred_bb)):
+        flag = False
+        for j in range(len(matched)):
+            if i == matched[j]:
+                flag = True
+                break;
+        if flag == False and pred_conf[i] >= 0.5:
+            errors += 1        
+    return countT, countF, countFaces, countFounded, errors
 
-persons = ["otherPeople", "Sanaken", "kiasummer", "MXG", "toalk", "zofinka", "zissxzirsziiss"]
+persons = ["MXG"]#["otherPeople", "Sanaken", "kiasummer", "MXG", "toalk", "zofinka", "zissxzirsziiss"]
 mode = "test"
 
 out_path = "mAP/input"
@@ -78,6 +89,7 @@ if ans == "yes\n":
     countFaces = 0
     countFounded = 0
     numImgs = 0
+    errors = 0
 
     for person in persons:
         imgs_path = "/home/afr/Downloads/datatset/" + person
@@ -128,7 +140,7 @@ if ans == "yes\n":
             gt_bb = np.array(gt_bb)
             gt_cl = np.array(gt_cl)
 
-            countT, countF, countFaces, countFounded = get_top1(pred_bb, pred_cl, pred_conf, gt_bb, gt_cl, countT, countF, countFaces, countFounded)
+            countT, countF, countFaces, countFounded, errors = get_top1(pred_bb, pred_cl, pred_conf, gt_bb, gt_cl, countT, countF, countFaces, countFounded, errors)
 
 
     countT = countT + 0.0
@@ -136,8 +148,11 @@ if ans == "yes\n":
     #print(countF)
     print("top1 error = " + str(countT/countF))
 
+    countFounded = countFounded + 0.0
     #print(str(countFaces) + " " + str(countFounded))
-    print("detected faces = ", + str(countFounded/countFaces))
+    print("detected faces = " + str(countFounded/countFaces))
+    errors = errors + 0.0
+    print("errors = " + str(errors/numImgs))
 
 
 subprocess.call("python " + out_path + "/../main.py --no-animation", shell=True)
